@@ -16,6 +16,19 @@
   <a href="https://pkg.go.dev/github.com/mhsanaei/3x-ui/v3"><img src="https://pkg.go.dev/badge/github.com/mhsanaei/3x-ui/v3.svg" alt="Go Reference"></a>
 </p>
 
+> [!NOTE]
+> 此 fork 提供简体中文安装脚本和 `x-ui` 命令行管理菜单。核心程序与发行包仍来自
+> [MHSanaei/3x-ui](https://github.com/MHSanaei/3x-ui)，每天由 GitHub Actions
+> 获取上游最新的 `install.sh`、`update.sh`、`x-ui.sh` 并重新应用中文词条。
+
+### 中文版安装
+
+```bash
+bash <(curl -Ls https://raw.githubusercontent.com/AiCodeNb/3x-ui/main/install.sh)
+```
+
+已安装用户执行 `x-ui` 后选择“更新菜单”，即可继续使用此 fork 的中文菜单更新源。
+
 **3X-UI** 是一个先进的开源 Web 控制面板，用于管理 [Xray-core](https://github.com/XTLS/Xray-core) 服务器。它提供简洁、多语言的界面，用于部署、配置和监控各种代理与 VPN 协议——从单台 VPS 到多节点部署。
 
 3X-UI 作为原始 X-UI 项目的增强分支（fork），增加了更广泛的协议支持、更好的稳定性、按客户端的流量统计以及许多提升使用体验的功能。

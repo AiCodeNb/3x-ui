@@ -1,0 +1,45 @@
+name: Sync upstream zh-CN scripts
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 2 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-upstream-zh-cn
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Fetch upstream and generate Chinese scripts
+        run: python localization/sync_upstream.py
+
+      - name: Validate scripts and translator
+        run: |
+          bash -n install.sh
+          bash -n update.sh
+          bash -n x-ui.sh
+          python -m unittest discover -s localization -p "test_*.py"
+
+      - name: Commit synchronized scripts
+        run: |
+          if git diff --quiet; then
+            echo "No upstream script changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add install.sh update.sh x-ui.sh localization/upstream.json
+          git commit -m "chore(localization): sync upstream Chinese scripts"
+          git push
