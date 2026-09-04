@@ -209,6 +209,19 @@ replace_xui_script() {
     return 0
 }
 
+# The menu must match the installed panel, so update it from that release's
+# tag; fall back to main only when no script is published for the version.
+installed_script_url() {
+    local ver
+    ver=$("${xui_folder}/x-ui" -v 2> /dev/null | tr -d '[:space:]')
+    if [[ "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && curl -fsIL -o /dev/null "https://raw.githubusercontent.com/MHSanaei/3x-ui/v${ver}/x-ui.sh"; then
+        echo "https://raw.githubusercontent.com/MHSanaei/3x-ui/v${ver}/x-ui.sh"
+    else
+        echo -e "${yellow}否 x-ui.sh published for the 已安装 version (${ver:-unknown}), using main${plain}" >&2
+        echo "https://raw.githubusercontent.com/AiCodeNb/3x-ui/main/x-ui.sh"
+    fi
+}
+
 update_menu() {
     echo -e "${yellow}正在更新 Menu${plain}"
     confirm "This function will update the menu to the latest changes." "y"
@@ -220,7 +233,7 @@ update_menu() {
         return 0
     fi
 
-    if replace_xui_script "https://raw.githubusercontent.com/AiCodeNb/3x-ui/main/x-ui.sh" "false"; then
+    if replace_xui_script "$(installed_script_url)" "false"; then
         chmod +x ${xui_folder}/x-ui.sh
         echo -e "${green}更新 successful. The panel has automatically restarted.${plain}"
         exit 0
@@ -837,7 +850,7 @@ enable_bbr() {
 }
 
 update_shell() {
-    if replace_xui_script "https://raw.githubusercontent.com/AiCodeNb/3x-ui/main/x-ui.sh" "true"; then
+    if replace_xui_script "$(installed_script_url)" "true"; then
         LOGI "Upgrade script succeeded, 请 rerun the script"
         before_show_menu
     else
@@ -2493,9 +2506,14 @@ create_iplimit_jails() {
     # Uncomment 'allowipv6 = auto' in fail2ban.conf
     sed -i 's/#allowipv6 = auto/allowipv6 = auto/g' /etc/fail2ban/fail2ban.conf
 
-    # On Debian 12+ and Ubuntu 22.04+ fail2ban's default backend should be changed to systemd
-    if [[ ( "${release}" == "debian" && ${os_version} -ge 12 ) || ( "${release}" == "ubuntu" && ${os_version} -ge 2200 ) ]]; then
-        sed -i '0,/action =/s/backend = auto/backend = systemd/' /etc/fail2ban/jail.conf
+    # Debian 12+ / Ubuntu 22.04+ log sshd to the journal only; a jail.d override
+    # survives package upgrades. Only the stock 'backend = auto' is overridden.
+    if [[ ( "${release}" == "debian" && ${os_version} -ge 12 ) || ( "${release}" == "ubuntu" && ${os_version} -ge 2200 ) ]] &&
+        sed -n '0,/action =/p' /etc/fail2ban/jail.conf | grep -q '^backend = auto'; then
+        cat << EOF > /etc/fail2ban/jail.d/3x-ipl-backend.conf
+[DEFAULT]
+backend = systemd
+EOF
     fi
 
     cat << EOF > /etc/fail2ban/jail.d/3x-ipl.conf
