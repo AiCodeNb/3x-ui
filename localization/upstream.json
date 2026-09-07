@@ -1,7 +1,7 @@
 {
   "repository": "MHSanaei/3x-ui",
   "branch": "main",
-  "commit": "8e13f8b172ee8651e5f5cc45e886010ebf31047b",
+  "commit": "e9e2e30278ecd1a9723a4137551f1393bed19286",
   "translation_replacements": {
     "install.sh": 325,
     "update.sh": 232,
